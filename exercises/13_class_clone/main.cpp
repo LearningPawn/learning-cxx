@@ -7,18 +7,26 @@ class DynFibonacci {
     int cached;
 
 public:
-    // TODO: 实现动态设置容量的构造器
-    DynFibonacci(int capacity): cache(new ?), cached(?) {}
+    // 实现动态设置容量的构造器
+    DynFibonacci(int capacity) : cache(new size_t[capacity]), cached(2) {
+        ASSERT(capacity >= 0, "capacity must not be less than 0");
+        cache[0] = 0;
+        if (capacity > 1) {
+            cache[1] = 1;
+            get(capacity - 1);
+        }
+    }
 
-    // TODO: 实现复制构造器
-    DynFibonacci(DynFibonacci const &other) = delete;
+    // 实现复制构造器
+    DynFibonacci(DynFibonacci const &other);
 
-    // TODO: 实现析构器，释放缓存空间
+    // 实现析构器，释放缓存空间
     ~DynFibonacci();
 
-    // TODO: 实现正确的缓存优化斐波那契计算
+    // 实现正确的缓存优化斐波那契计算
     size_t get(int i) {
-        for (; false; ++cached) {
+        if (i < 2) return cache[i];
+        for (; cached <= i; ++cached) {
             cache[cached] = cache[cached - 1] + cache[cached - 2];
         }
         return cache[i];
@@ -35,6 +43,14 @@ public:
         ASSERT(false, "i out of range");
     }
 };
+
+DynFibonacci::~DynFibonacci() {
+    delete[] cache, cached = 0;
+}
+
+DynFibonacci::DynFibonacci(DynFibonacci const &other) : cache(new size_t[other.cached]), cached(other.cached) {
+    std::copy(other.cache, other.cache + other.cached, cache);
+}
 
 int main(int argc, char **argv) {
     DynFibonacci fib(12);

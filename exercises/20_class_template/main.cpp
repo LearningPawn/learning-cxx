@@ -9,7 +9,11 @@ struct Tensor4D {
 
     Tensor4D(unsigned int const shape_[4], T const *data_) {
         unsigned int size = 1;
-        // TODO: 填入正确的 shape 并计算 size
+        // 填入正确的 shape 并计算 size
+        for (auto i = 0u; i < 4u; ++i) {
+            shape[i] = shape_[i];
+            size *= shape[i];
+        }
         data = new T[size];
         std::memcpy(data, data_, size * sizeof(T));
     }
@@ -27,7 +31,43 @@ struct Tensor4D {
     // 例如，`this` 形状为 `[1, 2, 3, 4]`，`others` 形状为 `[1, 2, 1, 4]`，
     // 则 `this` 与 `others` 相加时，3 个形状为 `[1, 2, 1, 4]` 的子张量各自与 `others` 对应项相加。
     Tensor4D &operator+=(Tensor4D const &others) {
-        // TODO: 实现单向广播的加法
+        // 实现单向广播的加法
+        unsigned int coordinate[4] = {0, 0, 0, 0};
+        unsigned int slice_size[4] = {0, 0, 0, 0};
+        unsigned int k = 0;
+        unsigned int size = 1;
+        for (auto i = 4u; i > 0u; --i) {
+            slice_size[i - 1] = size;
+            size *= others.shape[i - 1];
+        }
+        // 应存储数组 size，或使用 std::array
+        size = 1;
+        for (auto i = 0u; i < 4u; ++i) {
+            size *= shape[i];
+        }
+        for (auto i = 0u; i < size; ++i) {
+            k = 0;
+            for (auto j = 0u; j < 4u; ++j) {
+                if (others.shape[j] == shape[j]) {
+                    k += coordinate[j] * slice_size[j];
+                } else if (others.shape[j] == 1) {
+                    continue;
+                } else {
+                    ASSERT(false, "The length of different shapes must be 1");
+                }
+            }
+            data[i] += others.data[k];
+            if (i < size - 1) {
+                for (auto j = 3u; j >= 0u; --j) {
+                    if (coordinate[j] < shape[j] - 1) {
+                        coordinate[j] += 1;
+                        break;
+                    } else {
+                        coordinate[j] = 0;
+                    }
+                }
+            }
+        }
         return *this;
     }
 };

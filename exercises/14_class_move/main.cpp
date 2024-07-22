@@ -9,25 +9,44 @@ class DynFibonacci {
     int cached;
 
 public:
-    // TODO: 实现动态设置容量的构造器
-    DynFibonacci(int capacity): cache(new ?), cached(?) {}
+    // 实现动态设置容量的构造器
+    DynFibonacci(int capacity) : cache(new size_t[capacity]), cached(2) {
+        ASSERT(capacity >= 0, "capacity must not be less than 0");
+        cache[0] = 0;
+        if (capacity > 1) {
+            cache[1] = 1;
+        }
+    }
 
-    // TODO: 实现移动构造器
-    DynFibonacci(DynFibonacci &&other) noexcept = delete;
+    // 实现移动构造器
+    DynFibonacci(DynFibonacci &&other) noexcept;
 
-    // TODO: 实现移动赋值
+    // 实现移动赋值
     // NOTICE: ⚠ 注意移动到自身问题 ⚠
-    DynFibonacci &operator=(DynFibonacci &&other) noexcept = delete;
+    DynFibonacci &operator=(DynFibonacci &&other) noexcept {
+        if (other.cache == cache) return *this;
+        cache = other.cache, cached = other.cached;
+        other.cache = nullptr;
+        return *this;
+    }
 
-    // TODO: 实现析构器，释放缓存空间
+    // 实现析构器，释放缓存空间
     ~DynFibonacci();
 
-    // TODO: 实现正确的缓存优化斐波那契计算
+    // 实现正确的缓存优化斐波那契计算
     size_t operator[](int i) {
-        for (; false; ++cached) {
+        for (; cached <= i; ++cached) {
             cache[cached] = cache[cached - 1] + cache[cached - 2];
         }
         return cache[i];
+    }
+    
+    // 必须存在该重载，原运算符重载无法处理 const 的 fib_[10]
+    size_t operator[](int i) const {
+        if (i <= cached) {
+            return cache[i];
+        }
+        ASSERT(false, "i out of range");
     }
 
     // NOTICE: 不要修改这个方法
@@ -35,6 +54,12 @@ public:
         return cache;
     }
 };
+
+DynFibonacci::DynFibonacci(DynFibonacci &&other) noexcept : cache(other.cache), cached(other.cached) { other.cache = nullptr; }
+
+DynFibonacci::~DynFibonacci() {
+    delete[] cache, cached = 0;
+}
 
 int main(int argc, char **argv) {
     DynFibonacci fib(12);
